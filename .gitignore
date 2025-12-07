@@ -1,2 +1,86 @@
 .env
 node_modules/
+
+#for frontend
+/frontend/node_modules
+
+
+# ----------------------------
+#  PYTHON + MACHINE LEARNING
+# ----------------------------
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# ----------------------------
+#  DATA FILES (CSV, IMAGES)
+# ----------------------------
+data/
+dataset/
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.json
+*.pickle
+*.pkl
+*.npy
+*.npz
+*.sqlite3
+
+# Raw images (PlantVillage)
+PlantVillage/
+grayscale/
+segmented/
+
+# ----------------------------
+#  MODEL WEIGHTS / CHECKPOINTS
+# ----------------------------
+models/
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.ckpt
+*.pb
+
+# TensorFlow / PyTorch logs
+logs/
+*.tfevents.*
+
+# ----------------------------
+#  DOCKER / ENVIRONMENT SECRETS
+# ----------------------------
+.env
+*.env
+.env.*
+
+# ----------------------------
+#  SYSTEM / EDITOR FILES
+# ----------------------------
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# ----------------------------
+#  OTHER
+# ----------------------------
+# Ignore temporary files
+*.log
+*.tmp
+*.bak
