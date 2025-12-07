@@ -1,0 +1,68 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # Database for Users & Mandi Data
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - krishi-net
+
+  # Cache for Fast Predictions
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    networks:
+      - krishi-net
+
+  # The "Brain" - Python ML Server
+  ml:
+    build: ./ml
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    networks:
+      - krishi-net
+
+  # The "Controller" - Node.js Backend
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongo:27017/krishipredict
+      - REDIS_URL=redis://redis:6379
+      - MODEL_SERVER_URL=http://ml:8000
+      - JWT_SECRET=3aad2b9e8bbac99cc353386395bdb974
+    depends_on:
+      - mongo
+      - redis
+      - ml
+    networks:
+      - krishi-net
+
+  # The "Face" - React Frontend (We will build this in Phase 3)
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - krishi-net
+
+volumes:
+  mongo-data:
+
+networks:
+  krishi-net:
+    driver: bridge
