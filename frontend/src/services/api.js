@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// Backend URL (Localhost for now)
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+// Backend URL (Render Live)
+const API_BASE_URL = import.meta.env.VITE_API_URL;  
+// Example: https://krishi-predict.onrender.com/api/v1
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,7 +11,7 @@ const api = axios.create({
   },
 });
 
-// Request Interceptor: Har request ke saath Token bhejne ke liye (Security)
+// Request Interceptor (Token bhejne ke liye)
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('kisan_token');
   if (token) {
@@ -19,12 +20,11 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response Interceptor: Agar token expire ho jaye to logout kar do
+// Response Interceptor (Token expire)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Token Invalid/Expired
       localStorage.removeItem('kisan_token');
       window.location.href = '/login';
     }
