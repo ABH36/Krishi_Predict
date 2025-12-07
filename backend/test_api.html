@@ -1,0 +1,18 @@
+<button onclick="testAPI()">Click to Test Prediction</button>
+<pre id="output"></pre>
+<script>
+  async function testAPI() {
+    const res = await fetch('http://localhost:5000/api/v1/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        crop: "Garlic", 
+        location: { district: "Sehore" }, 
+        soil_type: "black", 
+        land_area_acres: 2.5 
+      })
+    });
+    const data = await res.json();
+    document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+  }
+</script>
