@@ -24,7 +24,7 @@ import TraderDashboard from './components/TraderDashboard';
 import BottomNav from './components/BottomNav';
 import { translations } from './translations';
 
-/* ✅ ONLY IMPORTANT FIX (DO NOT TOUCH ANYTHING ELSE) */
+/* ✅ ONLY REQUIRED FIX — DO NOT TOUCH ANYTHING ELSE */
 const API_BASE_URL =
   window.location.hostname === 'localhost'
     ? 'http://localhost:5000'
@@ -36,7 +36,13 @@ function App() {
   const [user, setUser] = useState(null);
   const [tempPhone, setTempPhone] = useState('');
 
-  const [formData, setFormData] = useState({ crop: 'garlic', district: 'Sehore', state: 'Madhya Pradesh', area: 1 });
+  const [formData, setFormData] = useState({
+    crop: 'garlic',
+    district: 'Sehore',
+    state: 'Madhya Pradesh',
+    area: 1
+  });
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -48,6 +54,7 @@ function App() {
 
   const t = translations[lang];
 
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -58,48 +65,85 @@ function App() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Initial load
   useEffect(() => {
     const savedUser = localStorage.getItem('kisan_user');
     const savedLang = localStorage.getItem('kisan_lang');
+
     if (savedLang) setLang(savedLang);
 
     if (savedUser) {
       const userData = JSON.parse(savedUser);
       setUser(userData);
-      if(userData.district) setFormData(prev => ({...prev, district: userData.district}));
-      if(userData.preferred_crops && userData.preferred_crops.length > 0) {
-         setFormData(prev => ({...prev, crop: userData.preferred_crops[0]}));
+
+      if (userData.district) {
+        setFormData(prev => ({ ...prev, district: userData.district }));
+      }
+
+      if (userData.preferred_crops?.length > 0) {
+        setFormData(prev => ({ ...prev, crop: userData.preferred_crops[0] }));
       }
     }
   }, []);
 
+  // Fetch alerts (FIXED HTTPS CALL)
   useEffect(() => {
     const currentDistrict = user?.district || formData.district;
+
     if (currentDistrict && screen === 'dashboard' && user?.role === 'farmer') {
-        axios.get(`${API_BASE_URL}/api/alerts/${currentDistrict}`)
-             .then(res => setAlerts(res.data))
-             .catch(err => console.error("Alert Error", err));
+      axios
+        .get(`${API_BASE_URL}/api/alerts/${currentDistrict}`)
+        .then(res => setAlerts(res.data))
+        .catch(err => console.error("Alert Error", err));
     }
   }, [user, formData.district, screen]);
 
-  const handleSplashFinish = () => { if (user) { setScreen('dashboard'); } else { setScreen('language'); } };
-  const handleLanguageSelect = (selectedLang) => { setLang(selectedLang); localStorage.setItem('kisan_lang', selectedLang); setScreen('login'); };
-  const handleLoginSuccess = (userData, isNewUser) => { if (isNewUser) { setTempPhone(userData.phone); setScreen('register'); } else { finishLogin(userData); } };
-  const handleRegisterComplete = (userData) => { finishLogin(userData); };
+  const handleSplashFinish = () => {
+    if (user) setScreen('dashboard');
+    else setScreen('language');
+  };
+
+  const handleLanguageSelect = (selectedLang) => {
+    setLang(selectedLang);
+    localStorage.setItem('kisan_lang', selectedLang);
+    setScreen('login');
+  };
+
+  const handleLoginSuccess = (userData, isNewUser) => {
+    if (isNewUser) {
+      setTempPhone(userData.phone);
+      setScreen('register');
+    } else {
+      finishLogin(userData);
+    }
+  };
+
+  const handleRegisterComplete = (userData) => {
+    finishLogin(userData);
+  };
 
   const finishLogin = (userData) => {
     setUser(userData);
     localStorage.setItem('kisan_user', JSON.stringify(userData));
-    if(userData.district) setFormData(prev => ({...prev, district: userData.district}));
+    if (userData.district) {
+      setFormData(prev => ({ ...prev, district: userData.district }));
+    }
     setScreen('dashboard');
   };
 
-  const handleLogout = () => { localStorage.removeItem('kisan_user'); setUser(null); setScreen('login'); setActiveTab('home'); };
+  const handleLogout = () => {
+    localStorage.removeItem('kisan_user');
+    setUser(null);
+    setScreen('login');
+    setActiveTab('home');
+  };
 
+  // 🔥 PRICE PREDICTION (FIXED HTTPS CALL)
   const handlePredict = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
     try {
       const response = await axios.post(`${API_BASE_URL}/api/predict`, {
         crop: formData.crop,
@@ -108,12 +152,13 @@ function App() {
         area_acres: formData.area
       });
       setResult(response.data);
-    } catch (err) { 
-      setError('Server connection failed.'); 
-    } finally { 
-      setLoading(false); 
+    } catch (err) {
+      setError('Server connection failed.');
+    } finally {
+      setLoading(false);
     }
   };
+
   // --- CROPS LIST ---
   const cropOptions = [
     { value: 'wheat', label: t.crops.wheat },
