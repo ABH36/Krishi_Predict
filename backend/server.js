@@ -3,36 +3,36 @@ const cors = require('cors');
 require('dotenv').config();
 const connectDB = require('./config/db');
 
-// 1. Config & DB
 const app = express();
-const PORT = process.env.CLIENT_URL;
+
+// ✅ Render automatically sets PORT
+const PORT = process.env.PORT || 5000;
+
+// DB
 connectDB();
 
-// 2. Middleware
+// Middleware
 app.use(cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true
+  origin: [
+    'https://krishi-predict.vercel.app'
+  ],
+  credentials: true
 }));
 
-app.use(express.json({ limit: '50mb' })); 
+app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// 3. Routes Mapping
-// Auth Routes
+// Routes
 app.use('/api/auth', require('./routes/auth'));
-
-// Admin Routes
 app.use('/api/admin', require('./routes/adminRoutes'));
-
-// API Routes (ML + Features)
 app.use('/api', require('./routes/apiRoutes'));
 
-// 4. Test Route
-app.get('/', (req, res) => 
-    res.send('KrishiPredict Backend is Ready & Structured! 🚜')
-);
+// Health check
+app.get('/', (req, res) => {
+  res.send('KrishiPredict Backend is Live 🚜');
+});
 
-// 5. Start Server
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Backend running cleanly on http://0.0.0.0:${PORT}`);
+// ❌ URL mat do, sirf PORT
+app.listen(PORT, () => {
+  console.log(`✅ Backend running on port ${PORT}`);
 });
