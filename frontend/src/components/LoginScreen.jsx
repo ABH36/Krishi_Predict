@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { ArrowRight, Loader2, Phone, ShieldCheck, Lock, ChevronLeft } from 'lucide-react';
-import WheatIcon from '../assets/WheatIcon'; // Ensure path is correct
+import WheatIcon from '../assets/WheatIcon';
 import axios from 'axios';
+
+/* ✅ FIXED API BASE URL (DO NOT CHANGE ANYTHING ELSE) */
+const API_BASE_URL =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://krishi-predict-exlq.onrender.com';
 
 const LoginScreen = ({ onLoginSuccess, lang, onAdminClick }) => {
   const [phone, setPhone] = useState('');
@@ -44,28 +50,29 @@ const LoginScreen = ({ onLoginSuccess, lang, onAdminClick }) => {
     }
     setError('');
     setLoading(true);
+
     // Fake OTP for Demo
     setTimeout(() => {
       setStep(2);
       setLoading(false);
-      alert(`Test OTP: 1234`); 
+      alert(`Test OTP: 1234`);
     }, 1000);
   };
 
   const handleVerify = async (e) => {
     e.preventDefault();
-    if (otp !== '1234') { 
+    if (otp !== '1234') {
       setError(t.error_otp);
       return;
     }
+
     setLoading(true);
     try {
-      const API_URL = window.location.hostname === 'localhost' 
-        ? 'http://localhost:5000' 
-        : `http://${window.location.hostname}:5000`;
+      const res = await axios.post(
+        `${API_BASE_URL}/api/auth/login`,
+        { phone }
+      );
 
-      const res = await axios.post(`${API_URL}/api/auth/login`, { phone });
-      
       onLoginSuccess(res.data.user, res.data.isNewUser);
 
     } catch (err) {
@@ -81,6 +88,7 @@ const LoginScreen = ({ onLoginSuccess, lang, onAdminClick }) => {
     setError('');
     setOtp('');
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-600 to-teal-800 flex flex-col items-center justify-center p-4 relative overflow-hidden">

@@ -3,6 +3,12 @@ import { User, MapPin, Check, Sprout, Briefcase, ChevronDown, ArrowRight, Loader
 import WheatIcon from '../assets/WheatIcon'; 
 import axios from 'axios';
 
+/* ✅ FIXED API BASE URL (DO NOT TOUCH ANYTHING ELSE) */
+const API_BASE_URL =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://krishi-predict-exlq.onrender.com';
+
 const RegisterScreen = ({ phone, onComplete, lang }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -13,11 +19,9 @@ const RegisterScreen = ({ phone, onComplete, lang }) => {
   const [role, setRole] = useState('farmer'); 
   const [loading, setLoading] = useState(false);
 
-  // --- CUSTOM DROPDOWN STATE ---
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -61,19 +65,23 @@ const RegisterScreen = ({ phone, onComplete, lang }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
 
     try {
-      const res = await axios.post(`${API_URL}/api/auth/update`, {
-        phone: phone,
-        name: formData.name,
-        district: formData.district,
-        crop: role === 'farmer' ? formData.crop : [],
-        language: lang,
-        role: role
-      });
+      const res = await axios.post(
+        `${API_BASE_URL}/api/auth/update`,
+        {
+          phone: phone,
+          name: formData.name,
+          district: formData.district,
+          crop: role === 'farmer' ? formData.crop : [],
+          language: lang,
+          role: role
+        }
+      );
+
       localStorage.setItem('kisan_user', JSON.stringify(res.data.user));
       onComplete(res.data.user);
+
     } catch (err) {
       alert("Registration failed.");
     } finally {
@@ -81,7 +89,6 @@ const RegisterScreen = ({ phone, onComplete, lang }) => {
     }
   };
 
-  // Dynamic Theme Colors based on Role
   const themeColor = role === 'farmer' ? 'emerald' : 'indigo';
   const bgGradient = role === 'farmer' ? 'from-emerald-50 to-teal-100' : 'from-indigo-50 to-blue-100';
   const buttonGradient = role === 'farmer' ? 'from-emerald-600 to-green-600' : 'from-indigo-600 to-blue-600';
