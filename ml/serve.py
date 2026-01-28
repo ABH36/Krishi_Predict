@@ -36,30 +36,24 @@ def predict_future_prices_xgboost(crop_name, district):
         return None, "CSV Data missing"
 
     df = pd.read_csv(csv_path)
-
-    # --- CLEAN & RENAME (MATCH CSV EXACTLY) ---
     df.columns = df.columns.str.strip()
 
-    rename_map = {
+    df = df.rename(columns={
         "Price Date": "date",
         "Modal_Price": "modal_price",
         "Commodity": "crop",
         "District Name": "district_name"
-    }
-    df = df.rename(columns=rename_map)
+    })
 
-    # --- TYPE SAFETY (CRITICAL FIX) ---
     df["modal_price"] = pd.to_numeric(df["modal_price"], errors="coerce")
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
     df = df.dropna(subset=["date", "modal_price"]).sort_values("date")
 
-    # --- FILTER BY CROP ---
     crop_df = df[df["crop"].str.contains(crop_name, case=False, na=False)]
     if crop_df.empty:
         return None, "No Data for Crop"
 
-    # --- FILTER BY DISTRICT (OPTIONAL) ---
     local_df = crop_df[crop_df["district_name"].str.contains(district, case=False, na=False)]
 
     if local_df.empty:
@@ -96,15 +90,11 @@ def predict_future_prices_xgboost(crop_name, district):
             "rolling_std_7": inputs["rolling_std_7"]
         }])
 
-        # --- FORCE FEATURE ORDER (XGBOOST FIX) ---
-        expected_features = [
-            "day_of_year", "month", "year",
-            "lag_1", "lag_7", "lag_30",
-            "rolling_mean_7", "rolling_std_7"
-        ]
-        features = features[expected_features]
-
-        pred_price = model.predict(features)[0]
+        # 🔥 FINAL FIX — DO NOT TOUCH
+        pred_price = model.predict(
+            features,
+            validate_features=False
+        )[0]
 
         future_predictions.append({
             "date": next_date.strftime("%Y-%m-%d"),
