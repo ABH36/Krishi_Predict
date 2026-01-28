@@ -5,7 +5,7 @@ const connectDB = require('./config/db');
 
 // 1. Config & DB
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.CLIENT_URL || 5000;
 connectDB();
 
 // 2. Middleware
