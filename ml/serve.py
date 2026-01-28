@@ -4,18 +4,15 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
-import xgboost as xgb
-from datetime import datetime, timedelta
-import json
+from datetime import timedelta
 
-# Image utils (kept for future use)
+# Image utils (future use)
 from PIL import Image
 import io
 import base64
 
 app = FastAPI()
 
-# ---- DEBUG INFO (TEMP, SAFE) ----
 print("📂 Current working dir:", os.getcwd())
 print("📂 Models folder exists:", os.path.exists("models"))
 print("📂 Wheat model exists:", os.path.exists("models/xgb_wheat.pkl"))
@@ -24,7 +21,7 @@ print("📂 Files in models:", os.listdir("models") if os.path.exists("models") 
 print("\n🚜 KrishiPredict ML Server Starting...")
 
 # =========================================================
-# XGBOOST PRICE PREDICTION LOGIC
+# XGBOOST PRICE PREDICTION
 # =========================================================
 
 def predict_future_prices_xgboost(crop_name, district):
@@ -40,27 +37,30 @@ def predict_future_prices_xgboost(crop_name, district):
 
     df = pd.read_csv(csv_path)
 
-    # Clean & normalize columns
+    # --- CLEAN & RENAME (MATCH CSV EXACTLY) ---
     df.columns = df.columns.str.strip()
+
     rename_map = {
-        'Price Date': 'date',
-        'Modal_Price': 'modal_price',
-        'Commodity': 'crop',
-        'District Name': 'district_name',
-        'arrival_date': 'date'
+        "Price Date": "date",
+        "Modal_Price": "modal_price",
+        "Commodity": "crop",
+        "District Name": "district_name"
     }
     df = df.rename(columns=rename_map)
 
-    df['date'] = pd.to_datetime(df['date'], errors='coerce')
-    df = df.dropna(subset=['date']).sort_values('date')
+    # --- TYPE SAFETY (CRITICAL FIX) ---
+    df["modal_price"] = pd.to_numeric(df["modal_price"], errors="coerce")
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
-    # Crop filter
-    crop_df = df[df['crop'].str.contains(crop_name, case=False, na=False)]
+    df = df.dropna(subset=["date", "modal_price"]).sort_values("date")
+
+    # --- FILTER BY CROP ---
+    crop_df = df[df["crop"].str.contains(crop_name, case=False, na=False)]
     if crop_df.empty:
         return None, "No Data for Crop"
 
-    # District filter (fallback allowed)
-    local_df = crop_df[crop_df['district_name'].str.contains(district, case=False, na=False)]
+    # --- FILTER BY DISTRICT (OPTIONAL) ---
+    local_df = crop_df[crop_df["district_name"].str.contains(district, case=False, na=False)]
 
     if local_df.empty:
         working_df = crop_df
@@ -70,38 +70,37 @@ def predict_future_prices_xgboost(crop_name, district):
         location_label = district
 
     last_row = working_df.iloc[-1]
-    current_date = last_row['date']
+    current_date = last_row["date"]
 
     inputs = {
-        'lag_1': last_row['modal_price'],
-        'lag_7': working_df.iloc[-7]['modal_price'] if len(working_df) > 7 else last_row['modal_price'],
-        'lag_30': working_df.iloc[-30]['modal_price'] if len(working_df) > 30 else last_row['modal_price'],
-        'rolling_mean_7': working_df['modal_price'].tail(7).mean(),
-        'rolling_std_7': working_df['modal_price'].tail(7).std() if len(working_df) > 7 else 0,
+        "lag_1": last_row["modal_price"],
+        "lag_7": working_df["modal_price"].iloc[-7] if len(working_df) > 7 else last_row["modal_price"],
+        "lag_30": working_df["modal_price"].iloc[-30] if len(working_df) > 30 else last_row["modal_price"],
+        "rolling_mean_7": working_df["modal_price"].tail(7).mean(),
+        "rolling_std_7": working_df["modal_price"].tail(7).std() if len(working_df) > 7 else 0,
     }
 
     future_predictions = []
 
-    # ---------- 30 Day Recursive Forecast ----------
     for i in range(1, 31):
         next_date = current_date + timedelta(days=i)
 
         features = pd.DataFrame([{
-            'day_of_year': next_date.dayofyear,
-            'month': next_date.month,
-            'year': next_date.year,
-            'lag_1': inputs['lag_1'],
-            'lag_7': inputs['lag_7'],
-            'lag_30': inputs['lag_30'],
-            'rolling_mean_7': inputs['rolling_mean_7'],
-            'rolling_std_7': inputs['rolling_std_7']
+            "day_of_year": next_date.dayofyear,
+            "month": next_date.month,
+            "year": next_date.year,
+            "lag_1": inputs["lag_1"],
+            "lag_7": inputs["lag_7"],
+            "lag_30": inputs["lag_30"],
+            "rolling_mean_7": inputs["rolling_mean_7"],
+            "rolling_std_7": inputs["rolling_std_7"]
         }])
 
-        # ✅ CRITICAL FIX: enforce exact feature order
+        # --- FORCE FEATURE ORDER (XGBOOST FIX) ---
         expected_features = [
-            'day_of_year', 'month', 'year',
-            'lag_1', 'lag_7', 'lag_30',
-            'rolling_mean_7', 'rolling_std_7'
+            "day_of_year", "month", "year",
+            "lag_1", "lag_7", "lag_30",
+            "rolling_mean_7", "rolling_std_7"
         ]
         features = features[expected_features]
 
@@ -112,16 +111,15 @@ def predict_future_prices_xgboost(crop_name, district):
             "price": round(float(pred_price), 2)
         })
 
-        # Update lags (recursive state)
-        inputs['lag_7'] = inputs['lag_1']
-        inputs['lag_1'] = pred_price
-        inputs['rolling_mean_7'] = (inputs['rolling_mean_7'] * 6 + pred_price) / 7
+        inputs["lag_7"] = inputs["lag_1"]
+        inputs["lag_1"] = pred_price
+        inputs["rolling_mean_7"] = (inputs["rolling_mean_7"] * 6 + pred_price) / 7
 
     return future_predictions, location_label
 
 
 # =========================================================
-# API SCHEMAS
+# API SCHEMA
 # =========================================================
 
 class CropInput(BaseModel):
@@ -132,7 +130,7 @@ class CropInput(BaseModel):
 
 
 # =========================================================
-# API ROUTES
+# ROUTES
 # =========================================================
 
 @app.get("/")
@@ -145,10 +143,10 @@ def predict_price(data: CropInput):
     forecast, source_loc = predict_future_prices_xgboost(data.crop, data.district)
 
     if not forecast:
-        return {"error": f"Model not ready for {data.crop}"}
+        return {"error": f"No prediction data available for {data.crop}"}
 
-    current_price = forecast[0]['price']
-    future_price = forecast[-1]['price']
+    current_price = forecast[0]["price"]
+    future_price = forecast[-1]["price"]
 
     change_pct = ((future_price - current_price) / current_price) * 100
 
@@ -173,12 +171,7 @@ def predict_price(data: CropInput):
         "advice": advice,
         "risk_color": color,
         "confidence": 0.94,
-        "trend": trend,
-        "nearby_markets": [
-            {"mandi": data.district, "price": current_price, "distance": "0 km", "is_best": False},
-            {"mandi": "Pas Ki Mandi", "price": round(current_price * 1.03, 1), "distance": "35 km", "is_best": True},
-            {"mandi": "City Mandi", "price": round(current_price * 0.98, 1), "distance": "50 km", "is_best": False}
-        ]
+        "trend": trend
     }
 
 
