@@ -14,16 +14,17 @@ import io
 import base64
 
 app = FastAPI()
+
+# ---- DEBUG INFO (TEMP, SAFE) ----
 print("📂 Current working dir:", os.getcwd())
 print("📂 Models folder exists:", os.path.exists("models"))
 print("📂 Wheat model exists:", os.path.exists("models/xgb_wheat.pkl"))
 print("📂 Files in models:", os.listdir("models") if os.path.exists("models") else "NO MODELS DIR")
 
-
 print("\n🚜 KrishiPredict ML Server Starting...")
 
 # =========================================================
-# XGBOOST PRICE PREDICTION LOGIC (UNCHANGED)
+# XGBOOST PRICE PREDICTION LOGIC
 # =========================================================
 
 def predict_future_prices_xgboost(crop_name, district):
@@ -39,6 +40,7 @@ def predict_future_prices_xgboost(crop_name, district):
 
     df = pd.read_csv(csv_path)
 
+    # Clean & normalize columns
     df.columns = df.columns.str.strip()
     rename_map = {
         'Price Date': 'date',
@@ -52,10 +54,12 @@ def predict_future_prices_xgboost(crop_name, district):
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     df = df.dropna(subset=['date']).sort_values('date')
 
+    # Crop filter
     crop_df = df[df['crop'].str.contains(crop_name, case=False, na=False)]
     if crop_df.empty:
         return None, "No Data for Crop"
 
+    # District filter (fallback allowed)
     local_df = crop_df[crop_df['district_name'].str.contains(district, case=False, na=False)]
 
     if local_df.empty:
@@ -78,6 +82,7 @@ def predict_future_prices_xgboost(crop_name, district):
 
     future_predictions = []
 
+    # ---------- 30 Day Recursive Forecast ----------
     for i in range(1, 31):
         next_date = current_date + timedelta(days=i)
 
@@ -92,6 +97,14 @@ def predict_future_prices_xgboost(crop_name, district):
             'rolling_std_7': inputs['rolling_std_7']
         }])
 
+        # ✅ CRITICAL FIX: enforce exact feature order
+        expected_features = [
+            'day_of_year', 'month', 'year',
+            'lag_1', 'lag_7', 'lag_30',
+            'rolling_mean_7', 'rolling_std_7'
+        ]
+        features = features[expected_features]
+
         pred_price = model.predict(features)[0]
 
         future_predictions.append({
@@ -99,6 +112,7 @@ def predict_future_prices_xgboost(crop_name, district):
             "price": round(float(pred_price), 2)
         })
 
+        # Update lags (recursive state)
         inputs['lag_7'] = inputs['lag_1']
         inputs['lag_1'] = pred_price
         inputs['rolling_mean_7'] = (inputs['rolling_mean_7'] * 6 + pred_price) / 7
@@ -128,7 +142,6 @@ def read_root():
 
 @app.post("/v1/predict")
 def predict_price(data: CropInput):
-    # ✅ FIX: Proper unpacking (ONLY CHANGE)
     forecast, source_loc = predict_future_prices_xgboost(data.crop, data.district)
 
     if not forecast:
