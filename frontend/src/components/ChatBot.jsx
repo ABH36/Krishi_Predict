@@ -2,6 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, Sparkles } from 'lucide-react';
 import axios from 'axios';
 
+const API_BASE_URL =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://krishi-predict-exlq.onrender.com';
+    
 const ChatBot = ({ lang }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -30,7 +35,6 @@ const ChatBot = ({ lang }) => {
     setIsTyping(true);
 
     try {
-      const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
       const res = await axios.post(`${API_URL}/api/chat`, { message: userMsg });
       setMessages(prev => [...prev, { type: 'bot', text: res.data.reply }]);
     } catch (err) {

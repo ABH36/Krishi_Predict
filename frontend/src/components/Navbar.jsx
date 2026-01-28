@@ -3,6 +3,12 @@ import { Sprout, Menu, X, Globe, LogOut, User, Bell, ChevronDown } from 'lucide-
 import axios from 'axios';
 import NotificationPanel from './NotificationPanel'; 
 
+const API_BASE_URL =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://krishi-predict-exlq.onrender.com';
+
+
 const Navbar = ({ user, onLogout, lang, setLang }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -27,7 +33,6 @@ const Navbar = ({ user, onLogout, lang, setLang }) => {
 
     const fetchNotifs = async () => {
         try {
-            const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
             const res = await axios.get(`${API_URL}/api/notifications`);
             setNotifications(res.data);
             setUnreadCount(res.data.length); 

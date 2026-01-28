@@ -2,6 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingCart, Phone, Plus, Tag, Scale, User, X, Loader2, CheckCircle, ChevronDown, Check, Store, Calendar, Sprout } from 'lucide-react';
 import axios from 'axios';
 
+const API_BASE_URL =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://krishi-predict-exlq.onrender.com';
+
 const KisanBazaar = ({ lang, district, user }) => {
   const [items, setItems] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -69,7 +74,6 @@ const KisanBazaar = ({ lang, district, user }) => {
   };
 
   const cropList = ['Wheat', 'Rice', 'Garlic', 'Onion', 'Soybean', 'Potato', 'Tomato'];
-  const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
 
   const fetchItems = async () => {
     setLoading(true);

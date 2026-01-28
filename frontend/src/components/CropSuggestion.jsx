@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { Lightbulb, TrendingUp, ArrowRight, Loader2, Award, ShieldCheck, Sprout } from 'lucide-react';
 import axios from 'axios';
 
+const API_BASE_URL =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://krishi-predict-exlq.onrender.com';
+
+
 const CropSuggestion = ({ lang, district }) => {
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState(null);
@@ -48,8 +54,6 @@ const CropSuggestion = ({ lang, district }) => {
   const handleAnalysis = async () => {
     setLoading(true);
     setRecommendations(null);
-    const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
-
     try {
       const promises = seasonalCrops.map(crop => 
         axios.post(`${API_URL}/api/predict`, {

@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { Camera, Upload, AlertTriangle, CheckCircle, Loader2, X, ScanLine, Activity } from 'lucide-react';
 import axios from 'axios';
 
+const API_BASE_URL =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://krishi-predict-exlq.onrender.com';
+
 const DiseaseDetector = ({ lang, district }) => {
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -44,8 +49,6 @@ const DiseaseDetector = ({ lang, district }) => {
     setLoading(true);
 
     try {
-        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
-        
         const response = await fetch(image);
         const blob = await response.blob();
         

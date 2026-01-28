@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Megaphone, Send, Clock, User, Radio, TrendingUp, MapPin, Loader2 } from 'lucide-react';
 import axios from 'axios';
 
+const API_BASE_URL =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://krishi-predict-exlq.onrender.com';
+
+
 const LiveReporter = ({ lang, district, user }) => {
   const [reports, setReports] = useState([]);
   const [price, setPrice] = useState('');
@@ -31,7 +37,6 @@ const LiveReporter = ({ lang, district, user }) => {
     reporter: "Reporter"
   };
 
-  const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
 
   // Fetch Reports
   const fetchReports = async () => {

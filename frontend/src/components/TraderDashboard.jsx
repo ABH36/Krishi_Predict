@@ -7,7 +7,11 @@ const TraderDashboard = ({ user }) => {
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
 
-  const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
+ const API_BASE_URL =
+   window.location.hostname === 'localhost'
+     ? 'http://localhost:5000'
+     : 'https://krishi-predict-exlq.onrender.com';
+ 
 
   // Fetch Logic
   useEffect(() => {

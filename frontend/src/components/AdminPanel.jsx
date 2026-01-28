@@ -5,6 +5,11 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
+ const API_BASE_URL =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://krishi-predict-exlq.onrender.com';
+
 const AdminPanel = ({ onLogout }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -18,8 +23,6 @@ const AdminPanel = ({ onLogout }) => {
   
   // --- RESPONSIVE STATE ---
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
 
   // --- AUTH ---
   const handleLogin = (e) => {
