@@ -14,6 +14,11 @@ import io
 import base64
 
 app = FastAPI()
+print("📂 Current working dir:", os.getcwd())
+print("📂 Models folder exists:", os.path.exists("models"))
+print("📂 Wheat model exists:", os.path.exists("models/xgb_wheat.pkl"))
+print("📂 Files in models:", os.listdir("models") if os.path.exists("models") else "NO MODELS DIR")
+
 
 print("\n🚜 KrishiPredict ML Server Starting...")
 
