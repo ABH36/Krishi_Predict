@@ -84,3 +84,7 @@ Thumbs.db
 *.log
 *.tmp
 *.bak
+
+# ✅ Allow production mandi data
+!data/
+!data/mandi_history.csv
