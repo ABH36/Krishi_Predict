@@ -128,12 +128,12 @@ def read_root():
 
 @app.post("/v1/predict")
 def predict_price(data: CropInput):
-    result = predict_future_prices_xgboost(data.crop, data.district)
+    # ✅ FIX: Proper unpacking (ONLY CHANGE)
+    forecast, source_loc = predict_future_prices_xgboost(data.crop, data.district)
 
-    if not result or not result[0]:
+    if not forecast:
         return {"error": f"Model not ready for {data.crop}"}
 
-    forecast, source_loc = result
     current_price = forecast[0]['price']
     future_price = forecast[-1]['price']
 
