@@ -24,6 +24,12 @@ import TraderDashboard from './components/TraderDashboard';
 import BottomNav from './components/BottomNav';
 import { translations } from './translations';
 
+/* ✅ ONLY IMPORTANT FIX (DO NOT TOUCH ANYTHING ELSE) */
+const API_BASE_URL =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://krishi-predict-exlq.onrender.com';
+
 function App() {
   const [screen, setScreen] = useState('splash');
   const [lang, setLang] = useState('hi'); 
@@ -36,14 +42,12 @@ function App() {
   const [error, setError] = useState(null);
   const [alerts, setAlerts] = useState([]);
 
-  // --- STATE FOR NAVIGATION ---
   const [activeTab, setActiveTab] = useState('home');
   const [isCropDropdownOpen, setIsCropDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const t = translations[lang];
 
-  // Close dropdown if clicked outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -54,7 +58,6 @@ function App() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- INITIAL LOAD ---
   useEffect(() => {
     const savedUser = localStorage.getItem('kisan_user');
     const savedLang = localStorage.getItem('kisan_lang');
@@ -70,23 +73,20 @@ function App() {
     }
   }, []);
 
-  // --- FETCH ALERTS ---
   useEffect(() => {
     const currentDistrict = user?.district || formData.district;
     if (currentDistrict && screen === 'dashboard' && user?.role === 'farmer') {
-        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
-        axios.get(`${API_URL}/api/alerts/${currentDistrict}`)
+        axios.get(`${API_BASE_URL}/api/alerts/${currentDistrict}`)
              .then(res => setAlerts(res.data))
              .catch(err => console.error("Alert Error", err));
     }
   }, [user, formData.district, screen]);
 
-  // --- HANDLERS ---
   const handleSplashFinish = () => { if (user) { setScreen('dashboard'); } else { setScreen('language'); } };
   const handleLanguageSelect = (selectedLang) => { setLang(selectedLang); localStorage.setItem('kisan_lang', selectedLang); setScreen('login'); };
   const handleLoginSuccess = (userData, isNewUser) => { if (isNewUser) { setTempPhone(userData.phone); setScreen('register'); } else { finishLogin(userData); } };
   const handleRegisterComplete = (userData) => { finishLogin(userData); };
-  
+
   const finishLogin = (userData) => {
     setUser(userData);
     localStorage.setItem('kisan_user', JSON.stringify(userData));
@@ -100,19 +100,20 @@ function App() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
     try {
-      const response = await axios.post(`${API_URL}/api/predict`, {
+      const response = await axios.post(`${API_BASE_URL}/api/predict`, {
         crop: formData.crop,
         district: formData.district,
         state: formData.state,
         area_acres: formData.area
       });
       setResult(response.data);
-    } catch (err) { setError('Server connection failed.'); } 
-    finally { setLoading(false); }
+    } catch (err) { 
+      setError('Server connection failed.'); 
+    } finally { 
+      setLoading(false); 
+    }
   };
-
   // --- CROPS LIST ---
   const cropOptions = [
     { value: 'wheat', label: t.crops.wheat },
