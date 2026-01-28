@@ -3,10 +3,7 @@ import { Sprout, Menu, X, Globe, LogOut, User, Bell, ChevronDown } from 'lucide-
 import axios from 'axios';
 import NotificationPanel from './NotificationPanel'; 
 
-const API_BASE_URL =
-  window.location.hostname === 'localhost'
-    ? 'http://localhost:5000'
-    : 'https://krishi-predict-exlq.onrender.com';
+const API_BASE_URL = 'https://krishi-predict-exlq.onrender.com';
 
 
 const Navbar = ({ user, onLogout, lang, setLang }) => {

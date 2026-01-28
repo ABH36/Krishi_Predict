@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { Lightbulb, TrendingUp, ArrowRight, Loader2, Award, ShieldCheck, Sprout } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL =
-  window.location.hostname === 'localhost'
-    ? 'http://localhost:5000'
-    : 'https://krishi-predict-exlq.onrender.com';
+const API_BASE_URL = 'https://krishi-predict-exlq.onrender.com';
 
 
 const CropSuggestion = ({ lang, district }) => {

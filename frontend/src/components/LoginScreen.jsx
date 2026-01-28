@@ -4,10 +4,7 @@ import WheatIcon from '../assets/WheatIcon';
 import axios from 'axios';
 
 /* ✅ FIXED API BASE URL (DO NOT CHANGE ANYTHING ELSE) */
-const API_BASE_URL =
-  window.location.hostname === 'localhost'
-    ? 'http://localhost:5000'
-    : 'https://krishi-predict-exlq.onrender.com';
+const API_BASE_URL = 'https://krishi-predict-exlq.onrender.com';
 
 const LoginScreen = ({ onLoginSuccess, lang, onAdminClick }) => {
   const [phone, setPhone] = useState('');

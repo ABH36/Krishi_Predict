@@ -2,10 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingCart, Phone, Plus, Tag, Scale, User, X, Loader2, CheckCircle, ChevronDown, Check, Store, Calendar, Sprout } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL =
-  window.location.hostname === 'localhost'
-    ? 'http://localhost:5000'
-    : 'https://krishi-predict-exlq.onrender.com';
+const API_BASE_URL = 'https://krishi-predict-exlq.onrender.com';
 
 const KisanBazaar = ({ lang, district, user }) => {
   const [items, setItems] = useState([]);

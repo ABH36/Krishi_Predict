@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Megaphone, Send, Clock, User, Radio, TrendingUp, MapPin, Loader2 } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL =
-  window.location.hostname === 'localhost'
-    ? 'http://localhost:5000'
-    : 'https://krishi-predict-exlq.onrender.com';
+const API_BASE_URL = 'https://krishi-predict-exlq.onrender.com';
 
 
 const LiveReporter = ({ lang, district, user }) => {
