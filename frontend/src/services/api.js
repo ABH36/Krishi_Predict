@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 // Backend URL (Localhost for now)
-const API_BASE_URL = 'https://krishi-predict-exlq.onrender.com/api/v1';
+const API_BASE_URL = 'https://krishi-predict-exlq.onrender.com/api';
+
 
 const api = axios.create({
   baseURL: API_BASE_URL,
