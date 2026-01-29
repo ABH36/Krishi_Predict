@@ -3,7 +3,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const DiseaseReport = require('../models/DiseaseReport');
 require('dotenv').config();
 
-const ML_SERVER_URL = 'http://127.0.0.1:8000';
+const ML_SERVER_URL = process.env.ML_SERVER_URL;
 
 // Gemini AI Setup (Safe Mode)
 let chatModel = null;
